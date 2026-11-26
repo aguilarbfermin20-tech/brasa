@@ -600,6 +600,7 @@ if (menuBtn && navLinks) {
   const setMenu = (open, { focusBtn = false } = {}) => {
     menuBtn.setAttribute('aria-expanded', String(open));
     navLinks.classList.toggle('is-open', open);
+    root.classList.toggle('menu-open', open);
     if (focusBtn) menuBtn.focus();
   };
   menuBtn.addEventListener('click', () => {
@@ -662,12 +663,29 @@ engraveToggle?.addEventListener('click', () => {
   engraveToggle.setAttribute('aria-pressed', String(state.engrave));
   engraveField.hidden = !state.engrave;
   if (state.engrave) {
-    engraveInput.focus();
+    engraveInput.focus({ preventScroll: true });   // el scroll lo maneja keepInputVisible
     setView('back');
   }
   setUserEngraving(state.engrave ? state.text : '');
   renderSummary();
 });
+
+// en mobile la vista previa queda fija arriba y tapaba el campo: al enfocarlo,
+// esperar a que la vista previa se achique y llevar el campo justo debajo
+const mqStickyPreview = matchMedia('(max-width: 860px)');
+function keepInputVisible() {
+  if (!mqStickyPreview.matches) return;
+  setTimeout(() => {
+    const cfg = $('.config');
+    if (!cfg || document.activeElement !== engraveInput) return;
+    const minTop = cfg.getBoundingClientRect().bottom + 12;
+    const r = engraveInput.closest('.engrave-field').getBoundingClientRect();
+    if (r.top < minTop || r.bottom > window.innerHeight) {
+      window.scrollBy({ top: r.top - minTop, behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }, reduce ? 0 : 380);
+}
+engraveInput?.addEventListener('focus', keepInputVisible);
 
 const ALLOWED = /^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9 .&'-]*$/;
 const ERR_CHARS = engraveErr?.textContent;
@@ -779,6 +797,12 @@ async function boot() {
   ch.addEventListener('pointercancel', end);
 
   window.addEventListener('resize', resize, { passive: true });
+  // el alto del canvas también cambia sin resize de ventana (vista previa que se achica en mobile)
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(mounts.tour.host);
+    ro.observe(mounts.config.host);
+  }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) requestRender(); });
 
   // fuentes listas → redibujar grabado con la tipografía real
