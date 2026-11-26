@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="es-AR" class="no-3d">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brasa · Botella térmica</title>
+<meta name="description" content="Brasa, botella térmica negra de doble pared con tapón cebador. Agua a 79° doce horas después. Proyecto de portfolio.">
+<meta name="theme-color" content="#d9e2eb">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='10' y='2' width='12' height='6' rx='1.5' fill='%232d2e30'/%3E%3Cpath d='M9 10h14v5H9z' fill='%2335363a'/%3E%3Crect x='9' y='15' width='14' height='15' rx='3' fill='%2315161a'/%3E%3Ccircle cx='16' cy='5' r='1.6' fill='%23ff6a2b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;900&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brasa.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" crossorigin>
+<script type="module" src="brasa.js"></script>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="nav" id="top">
+  <a class="wordmark" href="#top" aria-label="Brasa, inicio">BRASA</a>
+  <nav class="nav-menu" aria-label="Secciones">
+    <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav-links" hidden>
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span class="menu-label">Menú</span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#recorrido">Recorrido</a></li>
+      <li><a href="#tarde">La tarde</a></li>
+      <li><a href="#detalles">Detalles</a></li>
+      <li><a href="#preguntas">Preguntas</a></li>
+    </ul>
+  </nav>
+  <a class="btn btn-ember btn-sm" href="#reserva">Reservar el mío</a>
+</header>
+
+<main id="contenido">
+
+<!-- ================= HERO + RECORRIDO 3D ================= -->
+<section class="tour" id="recorrido" aria-label="Brasa en 3D: recorrido por la botella">
+  <div class="stage" id="stage">
+    <p class="giant" aria-hidden="true">BRASA</p>
+
+    <div class="stage-canvas" id="stage-canvas">
+      <img class="stage-photo" src="img/brasa-frente.jpg" width="1000" height="1903"
+           alt="La botella Brasa de pie: cuerpo negro mate, hombro y tapa grafito.">
+    </div>
+
+    <div class="hero-copy">
+      <h1>Llenala a la tarde.<br>A la noche sigue a <span class="nowrap">79°.</span></h1>
+      <p class="lede">Brasa es una botella térmica de doble pared con tapón cebador. Para el mate de la plaza, la ruta o la oficina.</p>
+      <div class="hero-actions">
+        <a class="btn btn-ember" href="#reserva">Reservar el mío</a>
+        <p class="hero-price">Desde <strong data-price-from></strong> · <span data-cuotas></span> cuotas</p>
+      </div>
+      <a class="scroll-hint" href="#feat-1">Bajá para girarla
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 2v11M3.5 8.5 8 13l4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <ol class="callouts" aria-label="Lo que tiene Brasa">
+      <li class="callout c-right" id="feat-1">
+        <span class="c-data">1 L · 750 ml</span>
+        <h2>Doble pared al vacío</h2>
+        <p>Dos paredes de acero con vacío en el medio. El calor no tiene por dónde salir y la botella no quema por fuera.</p>
+      </li>
+      <li class="callout c-left" id="feat-2">
+        <span class="c-data">85° → 79°</span>
+        <h2>79° a las 12 horas</h2>
+        <p>La cargás a 85° a las cuatro de la tarde y a las cuatro de la mañana todavía da para un mate decente.</p>
+      </li>
+      <li class="callout c-right" id="feat-3">
+        <span class="c-data">un toque</span>
+        <h2>Tapón cebador sin goteo</h2>
+        <p>Apretás el botón de la tapa, cae un chorro finito y corta seco. No hay que desenroscar nada para cebar.</p>
+      </li>
+      <li class="callout c-left" id="feat-4">
+        <span class="c-data">boca 40 mm</span>
+        <h2>Boca ancha para llenar</h2>
+        <p>La tapa sale entera. Entra la pava sin embudo y entra la mano con la esponja para lavarla.</p>
+      </li>
+      <li class="callout c-right" id="feat-5">
+        <span class="c-data">grabado láser</span>
+        <h2>El nombre, grabado</h2>
+        <p>BRASA va grabado al frente. Atrás podés grabar hasta 14 letras: tu nombre, el de la ronda o una fecha.</p>
+      </li>
+    </ol>
+
+    <svg class="leaders" id="leaders" aria-hidden="true" preserveAspectRatio="none">
+      <line x1="0" y1="0" x2="0" y2="0"/>
+      <circle r="4" cx="0" cy="0"/>
+    </svg>
+
+    <div class="hud" aria-hidden="true">
+      <div class="hud-temp">
+        <span class="hud-label">Temperatura</span>
+        <span class="hud-num"><span id="temp-value">85,0</span>°</span>
+        <span class="hud-label">hora <span id="temp-hour">00</span> de 12</span>
+      </div>
+      <div class="hud-progress">
+        <span class="hud-track"><span class="hud-bar" id="progress-bar"></span></span>
+        <span class="hud-tick"></span><span class="hud-tick"></span><span class="hud-tick"></span><span class="hud-tick"></span><span class="hud-tick"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= UNA TARDE ================= -->
+<section class="tarde" id="tarde" aria-labelledby="tarde-title">
+  <div class="wrap">
+    <h2 id="tarde-title" class="section-title">Una tarde que se estira<br>hasta la madrugada.</h2>
+    <p class="section-lede">Lo que pasa con el agua adentro de una Brasa de 1 L, cargada una vez y sin volver a calentar.</p>
+
+    <ol class="timeline">
+      <li style="--t:0">
+        <time class="tl-hour">16:00</time>
+        <span class="tl-temp">85°</span>
+        <span class="tl-bar" aria-hidden="true"></span>
+        <p>Pava en el fuego hasta antes de hervir. Cargás la botella, la tirás en la mochila y salís a la plaza.</p>
+      </li>
+      <li style="--t:.2">
+        <time class="tl-hour">18:30</time>
+        <span class="tl-temp">84°</span>
+        <span class="tl-bar" aria-hidden="true"></span>
+        <p>La ronda se agranda. Cada uno ceba el suyo con un toque al botón y nadie se quema los dedos.</p>
+      </li>
+      <li style="--t:.45">
+        <time class="tl-hour">21:00</time>
+        <span class="tl-temp">82°</span>
+        <span class="tl-bar" aria-hidden="true"></span>
+        <p>Se fue el sol y refresca. El último mate de la plaza sale igual de caliente que el primero.</p>
+      </li>
+      <li style="--t:.75">
+        <time class="tl-hour">00:30</time>
+        <span class="tl-temp">80°</span>
+        <span class="tl-bar" aria-hidden="true"></span>
+        <p>Ya en casa, con la yerba lavada. Queda agua para el té de antes de dormir.</p>
+      </li>
+      <li style="--t:1">
+        <time class="tl-hour">04:00</time>
+        <span class="tl-temp">79°</span>
+        <span class="tl-bar" aria-hidden="true"></span>
+        <p>Doce horas después. Si salís a la ruta temprano, el primer mate del día ya está resuelto.</p>
+      </li>
+    </ol>
+    <a class="btn btn-ember" href="#reserva">Reservar el mío</a>
+  </div>
+</section>
+
+<!-- ================= DETALLES ================= -->
+<section class="detalles" id="detalles" aria-labelledby="det-title">
+  <div class="wrap">
+    <h2 id="det-title" class="section-title">De cerca.</h2>
+    <div class="bento">
+      <figure class="b-tall">
+        <img src="img/brasa-argolla.jpg" width="1000" height="1935" loading="lazy"
+             alt="Brasa de pie con la argolla de acero colgando de la tapa.">
+        <figcaption><strong>Argolla de acero.</strong> Para colgarla de la mochila o de un mosquetón.</figcaption>
+      </figure>
+      <figure class="b-wide">
+        <img src="img/brasa-hombro.jpg" width="1400" height="1140" loading="lazy"
+             alt="Primer plano del hombro grafito y la tapa de la botella.">
+        <figcaption><strong>Hombro grafito con grip.</strong> Textura granulada que no se resbala con la mano mojada.</figcaption>
+      </figure>
+      <figure class="b-sq">
+        <img src="img/brasa-tapa.jpg" width="1000" height="1518" loading="lazy"
+             alt="Vista desde arriba: el botón cebador en el centro de la tapa.">
+        <figcaption><strong>El botón cebador.</strong> Un toque abre, soltás y cierra.</figcaption>
+      </figure>
+      <div class="b-spec">
+        <dl>
+          <div><dt>Capacidad</dt><dd>750 ml · 1 L</dd></div>
+          <div><dt>Temperatura</dt><dd>79° a las 12 h</dd></div>
+          <div><dt>Material</dt><dd>Acero 18/8, pintura mate</dd></div>
+          <div><dt>Peso</dt><dd>410 g · 480 g</dd></div>
+          <div><dt>Alto</dt><dd>26 cm · 30 cm</dd></div>
+        </dl>
+      </div>
+      <figure class="b-sq2">
+        <img src="img/brasa-cenital.jpg" width="1200" height="1062" loading="lazy"
+             alt="La tapa vista en ángulo desde arriba, sobre fondo gris.">
+        <figcaption><strong>Tapa que no gotea.</strong> Burlete doble, aunque viaje acostada.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESERVA ================= -->
+<section class="reserva" id="reserva" aria-labelledby="res-title">
+  <div class="wrap reserva-grid">
+    <div class="config">
+      <div class="config-canvas" id="config-canvas">
+        <img class="stage-photo" src="img/brasa-frente.jpg" width="1000" height="1903" loading="lazy"
+             alt="La botella Brasa de pie.">
+      </div>
+      <div class="config-views" role="group" aria-label="Vista de la botella">
+        <button type="button" class="chip" data-view="front" aria-pressed="false">Ver el frente</button>
+        <button type="button" class="chip" data-view="back" aria-pressed="true">Ver el grabado</button>
+      </div>
+      <p class="config-hint">Arrastrá la botella para girarla.</p>
+    </div>
+
+    <div class="reserva-copy">
+      <h2 id="res-title" class="section-title">Reservá la tuya.</h2>
+      <p class="section-lede">Elegí el tamaño y, si querés, grabale un nombre. Lo ves en la botella mientras escribís.</p>
+
+      <!-- precios y cuotas: se definen sólo acá (data-price en los radios y el grabado, data-cuotas en el form) -->
+      <form id="reserva-form" novalidate data-cuotas="6">
+        <fieldset>
+          <legend>Tamaño</legend>
+          <div class="cap-options">
+            <label class="cap-btn">
+              <input type="radio" name="cap" value="750" data-price="79900">
+              <span class="cap-name">750 ml</span><span class="cap-price" data-price-of="750"></span>
+              <span class="cap-note">Para uno o dos</span>
+            </label>
+            <label class="cap-btn">
+              <input type="radio" name="cap" value="1000" data-price="89900" checked>
+              <span class="cap-name">1 L</span><span class="cap-price" data-price-of="1000"></span>
+              <span class="cap-note">Para la ronda</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Grabado láser</legend>
+          <button type="button" class="toggle" id="engrave-toggle" aria-pressed="false" aria-controls="engrave-field" data-price="6000">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span>Sumar grabado <span class="muted">+ <span data-price-of="engrave"></span></span></span>
+          </button>
+          <div class="engrave-field" id="engrave-field" hidden>
+            <label for="engrave-text">Texto a grabar</label>
+            <div class="input-row">
+              <input id="engrave-text" name="grabado" type="text" maxlength="14" autocomplete="off"
+                     spellcheck="false" aria-describedby="engrave-count engrave-error" placeholder="Ej.: LA RONDA">
+              <span class="count" id="engrave-count" aria-live="polite">0/14</span>
+            </div>
+            <p class="field-error" id="engrave-error" hidden>Usá letras, números, espacios o . &amp; ' -</p>
+          </div>
+        </fieldset>
+
+        <div class="summary" aria-live="polite">
+          <p><span>Botella</span><span id="sum-cap"></span></p>
+          <p><span>Grabado</span><span id="sum-engrave">Sin grabado</span></p>
+          <p class="sum-total"><span>Total</span><span id="sum-total"></span></p>
+          <p class="sum-cuotas" id="sum-cuotas"></p>
+        </div>
+
+        <button class="btn btn-ember btn-block" type="submit"><span class="btn-label">Reservar el mío</span></button>
+        <div class="result" id="reserva-result" role="status" aria-live="polite" hidden></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESEÑAS ================= -->
+<section class="resenas" aria-labelledby="resenas-title">
+  <div class="wrap">
+    <h2 id="resenas-title" class="section-title">Los que ya ceban con Brasa.</h2>
+    <ul class="quotes">
+      <li>
+        <blockquote><p>“La cargo a la mañana para el laburo y a la vuelta, en el tren, todavía me tomo dos.”</p></blockquote>
+        <p class="who">Lucía · Haedo</p>
+      </li>
+      <li>
+        <blockquote><p>“Lo del botón parecía un chiche. Ahora no vuelvo a desenroscar un termo en la ruta.”</p></blockquote>
+        <p class="who">Martín · Rosario</p>
+      </li>
+      <li>
+        <blockquote><p>“Le grabé el nombre de la ronda de los domingos y ya nadie se la lleva por error.”</p></blockquote>
+        <p class="who">Caro · Mar del Plata</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="faq" id="preguntas" aria-labelledby="faq-title">
+  <div class="wrap faq-grid">
+    <h2 id="faq-title" class="section-title">Preguntas.</h2>
+    <div class="faq-list">
+      <details>
+        <summary>¿Cuánto mantiene el agua caliente?</summary>
+        <p>Cargada a 85°, está a 79° a las 12 horas con la tapa cerrada. Si la abrís seguido, baja un poco más rápido.</p>
+      </details>
+      <details>
+        <summary>¿Sirve para agua fría?</summary>
+        <p>Sí. La doble pared funciona igual al revés: el agua fría sigue fría unas 24 horas.</p>
+      </details>
+      <details>
+        <summary>¿Se puede lavar en el lavavajillas?</summary>
+        <p>Mejor a mano. La boca ancha deja entrar la esponja y la tapa se desarma en dos piezas para lavarla.</p>
+      </details>
+      <details>
+        <summary>¿Qué puedo grabar?</summary>
+        <p>Hasta 14 caracteres: letras, números, espacios y . &amp; ' -. El grabado va atrás, en vertical, como el BRASA del frente.</p>
+      </details>
+      <details>
+        <summary>¿Cómo se paga?</summary>
+        <p>En <span data-cuotas></span> cuotas con tarjeta. En esta demo no se cobra nada: la reserva es de mentira.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CIERRE ================= -->
+<section class="final" aria-labelledby="final-title">
+  <div class="final-photo">
+    <img src="img/brasa-esquina.jpg" width="1000" height="1771" loading="lazy"
+         alt="La botella Brasa sola en un rincón del estudio.">
+  </div>
+  <div class="final-copy">
+    <h2 id="final-title">El último mate<br>también va caliente.</h2>
+    <a class="btn btn-ember" href="#reserva">Reservar el mío</a>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <p class="wordmark">BRASA</p>
+  <p>Proyecto de portfolio. Producto, marca y datos ficticios. Imágenes de producto propias del proyecto.</p>
+</footer>
+</body>
+</html>
