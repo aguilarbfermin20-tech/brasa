@@ -9,6 +9,7 @@ let THREE, RoomEnvironment;
 ------------------------------------------------------------------- */
 
 const root = document.documentElement;
+root.classList.add('js');
 const mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
 const mqSmall = matchMedia('(max-width: 767px)');
 const qs = new URLSearchParams(location.search);
@@ -645,7 +646,10 @@ function renderSummary() {
   const engOn = state.engrave && state.text.trim();
   sumEng.textContent = engOn ? `“${state.text.trim().toUpperCase()}” · + ${fmt(ENGRAVE_PRICE)}` : 'Sin grabado';
   sumTotal.textContent = fmt(total());
-  sumCuotas.textContent = `${CUOTAS} cuotas de ${cuota(total())}`;
+  sumCuotas.textContent = `${CUOTAS} cuotas sin interés de ${cuota(total())}`;
+  // el botón muestra lo que vas a pagar
+  const submit = form.querySelector('button[type="submit"]');
+  if (submit.dataset.state !== 'loading') submit.querySelector('.btn-label').textContent = `Reservar · ${fmt(total())}`;
 }
 
 capRadios.forEach((r) => r.addEventListener('change', () => {
@@ -739,7 +743,7 @@ form?.addEventListener('submit', (e) => {
     result.dataset.state = 'done';
     result.innerHTML = `
       <p class="result-title">Listo: tu Brasa ${state.cap === '750' ? '750 ml' : '1 L'} quedó reservada.</p>
-      <p>${engOn ? `Con grabado “${esc(state.text.trim().toUpperCase())}”. ` : ''}Total ${fmt(total())}, en ${CUOTAS} cuotas de ${cuota(total())}.</p>
+      <p>${engOn ? `Con grabado “${esc(state.text.trim().toUpperCase())}”. ` : ''}Total ${fmt(total())}, en ${CUOTAS} cuotas sin interés de ${cuota(total())}.</p>
       <p class="result-demo">Esto es una demo: no se cobra ni se envía nada.</p>`;
     btn.disabled = false;
     btn.dataset.state = '';
@@ -748,6 +752,181 @@ form?.addEventListener('submit', (e) => {
 });
 
 renderSummary();
+
+/* ================================================================
+   LA PRUEBA: simulador de 12 horas, Brasa contra un termo común
+================================================================ */
+const labInput = $('#lab-hour');
+if (labInput) {
+  const momentEls = $$('#moments li');
+  // los momentos del HTML son la curva de Brasa: [hora desde las 16, temperatura]
+  const PTS = momentEls.map((li) => [Number(li.dataset.h), Number(li.dataset.temp)]);
+  const T0 = PTS[0][1], AMB = 20, OTHER_12H = 62;
+  const K = Math.log((T0 - AMB) / (OTHER_12H - AMB)) / 12;   // enfriamiento de Newton
+  const brasaAt = (h) => {
+    for (let i = 0; i < PTS.length - 1; i++) {
+      const [h0, t0] = PTS[i], [h1, t1] = PTS[i + 1];
+      if (h <= h1) return t0 + (t1 - t0) * ((h - h0) / (h1 - h0));
+    }
+    return PTS[PTS.length - 1][1];
+  };
+  const otherAt = (h) => AMB + (T0 - AMB) * Math.exp(-K * h);
+  const verdict = (t) => t >= 75 ? ['ok', 'Mate perfecto'] : t >= 70 ? ['meh', 'Todavía rinde'] : t >= 66 ? ['bad', 'Tibio'] : ['bad', 'Mate lavado'];
+  const clock = (h) => {
+    const m = (16 * 60 + Math.round(h * 60)) % 1440;
+    return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  };
+
+  // gráfico
+  const X0 = 46, X1 = 600, Y0 = 20, Y1 = 296, TMIN = 55, TMAX = 90;
+  const x = (h) => X0 + (X1 - X0) * h / 12;
+  const y = (t) => Y1 - (Y1 - Y0) * (t - TMIN) / (TMAX - TMIN);
+  const path = (fn) => Array.from({ length: 49 }, (_, i) => {
+    const h = i / 4;
+    return `${i ? 'L' : 'M'}${x(h).toFixed(1)} ${y(fn(h)).toFixed(1)}`;
+  }).join(' ');
+  const grid = [60, 70, 80, 90].map((t) =>
+    `<line class="gridline" x1="${X0}" x2="${X1}" y1="${y(t)}" y2="${y(t)}"/><text class="axis" x="${X0 - 10}" y="${y(t) + 4}" text-anchor="end">${t}°</text>`).join('');
+  const hours = [0, 3, 6, 9, 12].map((h) =>
+    `<text class="axis" x="${x(h)}" y="${Y1 + 26}" text-anchor="middle">${clock(h)}</text>`).join('');
+  const svg = $('#lab-svg');
+  svg.innerHTML = `
+    <defs><linearGradient id="brasaFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6a2b" stop-opacity=".28"/><stop offset="1" stop-color="#ff6a2b" stop-opacity="0"/>
+    </linearGradient></defs>
+    <rect class="zone" x="${X0}" y="${y(85)}" width="${X1 - X0}" height="${y(70) - y(85)}"/>
+    <line class="zone-edge" x1="${X0}" x2="${X1}" y1="${y(70)}" y2="${y(70)}"/>
+    <text class="zone-label" x="${X0 + 10}" y="${y(70) - 10}">ZONA MATE · 70° A 85°</text>
+    ${grid}${hours}
+    <path class="area-brasa" d="${path(brasaAt)} L${X1} ${Y1} L${X0} ${Y1} Z"/>
+    <path class="line-other" d="${path(otherAt)}"/>
+    <path class="line-brasa" d="${path(brasaAt)}"/>
+    <text class="tag tag-brasa" x="${X1 + 10}" y="${y(brasaAt(12)) + 4}">Brasa</text>
+    <text class="tag tag-other" x="${X1 + 10}" y="${y(otherAt(12)) + 4}">Termo</text>
+    <line class="cursor" id="lab-cursor" y1="${Y0}" y2="${Y1}"/>
+    <circle class="dot-other" id="lab-dot-other" r="7"/>
+    <circle class="dot-brasa" id="lab-dot-brasa" r="8"/>`;
+  svg.setAttribute('viewBox', `0 0 ${X1 + 60} 340`);
+
+  const prueba = $('#prueba');
+  const els = {
+    clock: $('#lab-clock'), brasa: $('#lab-brasa'), other: $('#lab-other'),
+    brasaV: $('#lab-brasa-v'), otherV: $('#lab-other-v'),
+    cursor: $('#lab-cursor'), dotB: $('#lab-dot-brasa'), dotO: $('#lab-dot-other'),
+  };
+  function setHour(h) {
+    const tb = brasaAt(h), to = otherAt(h);
+    els.clock.textContent = clock(h);
+    els.brasa.textContent = Math.round(tb);
+    els.other.textContent = Math.round(to);
+    const [lb, vb] = verdict(tb), [lo, vo] = verdict(to);
+    els.brasaV.dataset.level = lb; els.brasaV.textContent = vb;
+    els.otherV.dataset.level = lo; els.otherV.textContent = vo;
+    els.cursor.setAttribute('x1', x(h)); els.cursor.setAttribute('x2', x(h));
+    els.dotB.setAttribute('cx', x(h)); els.dotB.setAttribute('cy', y(tb));
+    els.dotO.setAttribute('cx', x(h)); els.dotO.setAttribute('cy', y(to));
+    labInput.style.setProperty('--pct', `${(h / 12) * 100}%`);
+    labInput.setAttribute('aria-valuetext', `${clock(h)}: Brasa ${Math.round(tb)} grados, termo común ${Math.round(to)} grados`);
+    let on = 0;
+    momentEls.forEach((li, i) => { if (Number(li.dataset.h) <= h + 0.01) on = i; });
+    momentEls.forEach((li, i) => li.classList.toggle('is-on', i === on));
+    prueba.style.setProperty('--heat', (0.55 + 0.45 * clamp((tb - 70) / 15)).toFixed(3));
+  }
+
+  // animación de la hora (para el arranque y los botones de los momentos)
+  let tween = 0;
+  function animateTo(target, dur = 900) {
+    cancelAnimationFrame(tween);
+    const from = Number(labInput.value);
+    if (reduce || dur === 0) { labInput.value = target; setHour(target); return; }
+    const t0 = performance.now();
+    const step = (now) => {
+      const k = clamp((now - t0) / dur);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      const h = from + (target - from) * e;
+      labInput.value = h; setHour(h);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  labInput.addEventListener('input', () => { cancelAnimationFrame(tween); setHour(Number(labInput.value)); });
+  momentEls.forEach((li) => li.querySelector('button')?.addEventListener('click', () => animateTo(Number(li.dataset.h))));
+  setHour(0);
+
+  // la primera vez que el simulador entra en pantalla, corre solo las 12 horas
+  const labIO = new IntersectionObserver((entries) => {
+    if (!entries[0].isIntersecting) return;
+    labIO.disconnect();
+    if (!reduce && Number(labInput.value) === 0) setTimeout(() => animateTo(12, 3600), 400);
+  }, { threshold: 0.45 });
+  labIO.observe($('.lab'));
+}
+
+/* ================================================================
+   DETALLES: los pines de la foto siguen a la lista
+================================================================ */
+const featureEls = $$('.features li');
+const pinEls = $$('.pins li');
+pinEls.forEach((p, i) => p.style.setProperty('--i', i));
+function setPin(n) {
+  featureEls.forEach((f) => f.classList.toggle('is-on', f.dataset.pin === n));
+  pinEls.forEach((p) => p.classList.toggle('is-on', p.dataset.pin === n));
+}
+featureEls.forEach((f) => {
+  f.addEventListener('pointerenter', () => setPin(f.dataset.pin));
+});
+if (featureEls.length) {
+  // al scrollear, se prende el rasgo que pasa por el centro de la pantalla
+  const pinIO = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) setPin(e.target.dataset.pin);
+  }, { rootMargin: '-45% 0px -45% 0px' });
+  featureEls.forEach((f) => pinIO.observe(f));
+}
+
+/* ================================================================
+   REVELADOS AL SCROLLEAR
+================================================================ */
+const reveals = $$('.reveal');
+if ('IntersectionObserver' in window) {
+  // escalonar los hermanos que entran juntos
+  const groups = new Map();
+  reveals.forEach((el) => {
+    const n = groups.get(el.parentElement) || 0;
+    el.style.setProperty('--d', `${Math.min(n, 5) * 0.08}s`);
+    groups.set(el.parentElement, n + 1);
+  });
+  const revIO = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add('is-in');
+      revIO.unobserve(e.target);
+    }
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+  reveals.forEach((el) => revIO.observe(el));
+} else {
+  reveals.forEach((el) => el.classList.add('is-in'));
+}
+
+/* ================================================================
+   BARRA DE COMPRA EN EL CELULAR
+================================================================ */
+const buybar = $('#buybar');
+const reservaSec = $('#reserva');
+const finalSec = $('.final');
+let buyTick = 0;
+function updateBuybar() {
+  buyTick = 0;
+  if (!buybar) return;
+  const vh = window.innerHeight;
+  const pastTour = tour ? tour.getBoundingClientRect().bottom < vh * 0.6 : true;
+  const inView = (el) => { if (!el) return false; const r = el.getBoundingClientRect(); return r.top < vh && r.bottom > 0; };
+  const show = pastTour && !inView(reservaSec) && !inView(finalSec) && !root.classList.contains('menu-open');
+  buybar.classList.toggle('is-on', show);
+  buybar.inert = !show;
+  root.classList.toggle('buy-on', show && matchMedia('(max-width: 860px)').matches);
+}
+window.addEventListener('scroll', () => { if (!buyTick) buyTick = requestAnimationFrame(updateBuybar); }, { passive: true });
+updateBuybar();
 
 /* ================================================================
    ARRANQUE
