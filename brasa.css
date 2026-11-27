@@ -50,7 +50,7 @@ input { caret-color: var(--ember-deep); }
 html { scrollbar-color: var(--ink-soft) var(--fog-2); }
 
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
-.prueba :focus-visible, .final :focus-visible, .footer :focus-visible, .promise :focus-visible, .buybar :focus-visible { outline-color: var(--ember); }
+.prueba :focus-visible, .final :focus-visible, .promise :focus-visible, .buybar :focus-visible { outline-color: var(--ember); }
 
 .skip {
   position: fixed; left: 12px; top: -60px; z-index: 50;
@@ -731,12 +731,6 @@ details p { padding: 0 48px 24px 0; max-width: 60ch; color: var(--ink-soft); }
   .final-copy { padding: 48px var(--gutter) 64px; }
 }
 
-.footer {
-  background: var(--night); color: var(--night-muted);
-  padding: 40px var(--gutter) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 32px;
-  border-top: 1px solid #2a2c31; font-size: 15px;
-}
-.footer .wordmark { color: var(--night-text); }
 
 /* ---------- barra de compra (celular) ---------- */
 .buybar { display: none; }
@@ -759,8 +753,6 @@ details p { padding: 0 48px 24px 0; max-width: 60ch; color: var(--ink-soft); }
   .buybar strong { font: 900 20px/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
   .buybar p > span { font-size: 14px; color: var(--night-muted); }
   .buybar .btn { min-height: 48px; padding: 0 22px; }
-  /* que la barra no tape el final de la página */
-  .footer { padding-bottom: 104px; }
 }
 @media (prefers-reduced-motion: reduce) { .buybar { transition: none; } }
 
