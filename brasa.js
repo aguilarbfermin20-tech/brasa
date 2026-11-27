@@ -370,13 +370,13 @@ function setUserEngraving(text) {
 const TAU = Math.PI * 2;
 // p: progreso · ry: giro · tx: inclinación · cz: distancia · cy: altura cámara · ly: mira · cap: tapa afuera
 const KEYS = [
-  { p: 0.00, ry: -0.45, tx: 0.00, cz: 11.6, cy: 0.5, ly: 0.25, cap: 0 },
-  { p: 0.17, ry: 0.95, tx: -0.03, cz: 8.4, cy: 0.1, ly: -0.25, cap: 0 },
-  { p: 0.33, ry: 2.25, tx: 0.06, cz: 8.8, cy: -0.4, ly: -0.7, cap: 0 },
-  { p: 0.50, ry: 3.45, tx: 0.58, cz: 7.2, cy: 1.6, ly: 1.15, cap: 0 },
-  { p: 0.67, ry: 4.6, tx: 0.22, cz: 8.6, cy: 1.2, ly: 0.9, cap: 1 },
-  { p: 0.84, ry: TAU, tx: 0.0, cz: 7.6, cy: 0.2, ly: 0.15, cap: 0 },
-  { p: 1.00, ry: TAU + 0.55, tx: 0.0, cz: 11.6, cy: 0.5, ly: 0.25, cap: 0 },
+  { p: 0.00, ry: -0.45, tx: 0.04, cz: 10.2, cy: 0.45, ly: 0.32, cap: 0, px: 1.3 },
+  { p: 0.17, ry: 0.95, tx: -0.03, cz: 8.4, cy: 0.1, ly: -0.25, cap: 0, px: 0 },
+  { p: 0.33, ry: 2.25, tx: 0.06, cz: 8.8, cy: -0.4, ly: -0.7, cap: 0, px: 0 },
+  { p: 0.50, ry: 3.45, tx: 0.58, cz: 7.2, cy: 1.6, ly: 1.15, cap: 0, px: 0 },
+  { p: 0.67, ry: 4.6, tx: 0.22, cz: 8.6, cy: 1.2, ly: 0.9, cap: 1, px: 0 },
+  { p: 0.84, ry: TAU, tx: 0.0, cz: 7.6, cy: 0.2, ly: 0.15, cap: 0, px: 0 },
+  { p: 1.00, ry: TAU + 0.55, tx: 0.0, cz: 11.6, cy: 0.5, ly: 0.25, cap: 0, px: 0 },
 ];
 const FEATURE_P = [0.17, 0.33, 0.5, 0.67, 0.84];
 const WINDOW = 0.07;
@@ -387,13 +387,13 @@ function poseAt(p) {
   const a = KEYS[i], b = KEYS[i + 1];
   const t = smooth(clamp((p - a.p) / (b.p - a.p)));
   const o = {};
-  for (const k of ['ry', 'tx', 'cz', 'cy', 'ly', 'cap']) o[k] = lerp(a[k], b[k], t);
+  for (const k of ['ry', 'tx', 'cz', 'cy', 'ly', 'cap', 'px']) o[k] = lerp(a[k], b[k], t);
   return o;
 }
 
-const POSE_STATIC = { ry: 0.55, tx: 0.04, cz: 9.4, cy: 0.5, ly: 0.05, cap: 0 };
-const POSE_FRONT = { ry: -0.15, tx: 0.03, cz: 10.6, cy: 0.6, ly: 0.05, cap: 0 };
-const POSE_BACK = { ry: Math.PI + 0.12, tx: 0.03, cz: 9.4, cy: 0.4, ly: -0.15, cap: 0 };
+const POSE_STATIC = { ry: 0.55, tx: 0.04, cz: 9.4, cy: 0.5, ly: 0.05, cap: 0, px: 0 };
+const POSE_FRONT = { ry: -0.15, tx: 0.03, cz: 10.6, cy: 0.6, ly: 0.05, cap: 0, px: 0 };
+const POSE_BACK = { ry: Math.PI + 0.12, tx: 0.03, cz: 9.4, cy: 0.4, ly: -0.15, cap: 0, px: 0 };
 
 /* anclas para las líneas guía, en coordenadas del mundo */
 let tmpV, tmpV2;   // se crean en initScene, cuando three ya cargó
@@ -429,6 +429,8 @@ let rafId = 0;
 let scrollP = 0;
 let snapNext = false;
 let lastNow = 0;
+let introStart = 0;                 // entrada de la botella al cargar
+const pointer = { x: 0, y: 0 };     // puntero normalizado -1..1, para el hero
 
 function requestRender() {
   needsFrame = true;
@@ -441,6 +443,7 @@ function mountTo(name) {
   if (!m) return;
   m.host.appendChild(renderer.domElement);
   active = name;
+  if (name === 'tour' && !introStart && !reduce) introStart = performance.now();
   resize();
   if (name === 'config') {
     Object.assign(current, configView === 'back' ? POSE_BACK : POSE_FRONT);
@@ -463,6 +466,9 @@ function resize() {
 
 function applyPose(o, now) {
   pivot.rotation.set(o.tx, o.ry + dragRy, 0, 'XYZ');
+  // en pantallas anchas el hero corre la botella a la mitad derecha (el texto va a la izquierda)
+  const wide = active === 'tour' ? clamp((camera.aspect - 1.05) / 0.45) : 0;
+  pivot.position.x = (o.px || 0) * wide;
   const fz = camera.userData.fitZ || 1;
   camera.position.set(0, o.cy, o.cz * fz);
   camera.lookAt(0, o.ly, 0);
@@ -495,6 +501,21 @@ function frame(now) {
 
   if (active === 'tour') {
     target = reduce ? POSE_STATIC : poseAt(scrollP);
+    if (!reduce) {
+      // entrada: llega girando y acercándose
+      const it = introStart ? clamp((now - introStart) / 2000) : 1;
+      if (it < 1) moving = true;
+      const e = 1 - Math.pow(1 - it, 3);
+      target.ry += (1 - e) * -2.8;
+      target.cz += (1 - e) * 3.5;
+      // en el hero queda viva: se mece y sigue al puntero
+      const hero = 1 - clamp(scrollP / 0.07);
+      if (hero > 0) {
+        target.ry += (Math.sin(now / 1700) * 0.12 + pointer.x * 0.38) * hero;
+        target.tx += pointer.y * 0.07 * hero;
+        moving = true;
+      }
+    }
   } else {
     const base = configView === 'back' ? POSE_BACK : POSE_FRONT;
     target = { ...base };
@@ -562,6 +583,7 @@ function readScroll() {
   if (heroCopy) heroCopy.style.opacity = heroFade;
   if (heroCopy) heroCopy.style.visibility = heroFade < 0.02 ? 'hidden' : 'visible';
   if (giant) giant.style.setProperty('--fade', (0.35 + heroFade * 0.65).toFixed(3));
+  if (stage) stage.style.setProperty('--hero', heroFade.toFixed(3));
   // sólo dibujar si el recorrido está en pantalla: scrollear el resto no gasta GPU
   if (active === 'tour' && visible.has('tour')) requestRender();
 }
@@ -754,10 +776,10 @@ form?.addEventListener('submit', (e) => {
 renderSummary();
 
 /* ================================================================
-   LA PRUEBA: simulador de 12 horas, Brasa contra un termo común
+   LA PRUEBA: las 12 horas corren solas, Brasa contra un termo común
 ================================================================ */
-const labInput = $('#lab-hour');
-if (labInput) {
+const labSvg = $('#lab-svg');
+if (labSvg) {
   const momentEls = $$('#moments li');
   // los momentos del HTML son la curva de Brasa: [hora desde las 16, temperatura]
   const PTS = momentEls.map((li) => [Number(li.dataset.h), Number(li.dataset.temp)]);
@@ -781,16 +803,18 @@ if (labInput) {
   const X0 = 46, X1 = 600, Y0 = 20, Y1 = 296, TMIN = 55, TMAX = 90;
   const x = (h) => X0 + (X1 - X0) * h / 12;
   const y = (t) => Y1 - (Y1 - Y0) * (t - TMIN) / (TMAX - TMIN);
-  const path = (fn) => Array.from({ length: 49 }, (_, i) => {
-    const h = i / 4;
-    return `${i ? 'L' : 'M'}${x(h).toFixed(1)} ${y(fn(h)).toFixed(1)}`;
-  }).join(' ');
+  const path = (fn, upTo = 12) => {
+    const n = Math.max(1, Math.round(upTo * 4));
+    return Array.from({ length: n + 1 }, (_, i) => {
+      const h = (i / n) * upTo;
+      return `${i ? 'L' : 'M'}${x(h).toFixed(1)} ${y(fn(h)).toFixed(1)}`;
+    }).join(' ');
+  };
   const grid = [60, 70, 80, 90].map((t) =>
     `<line class="gridline" x1="${X0}" x2="${X1}" y1="${y(t)}" y2="${y(t)}"/><text class="axis" x="${X0 - 10}" y="${y(t) + 4}" text-anchor="end">${t}°</text>`).join('');
   const hours = [0, 3, 6, 9, 12].map((h) =>
     `<text class="axis" x="${x(h)}" y="${Y1 + 26}" text-anchor="middle">${clock(h)}</text>`).join('');
-  const svg = $('#lab-svg');
-  svg.innerHTML = `
+  labSvg.innerHTML = `
     <defs><linearGradient id="brasaFill" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff6a2b" stop-opacity=".28"/><stop offset="1" stop-color="#ff6a2b" stop-opacity="0"/>
     </linearGradient></defs>
@@ -798,22 +822,26 @@ if (labInput) {
     <line class="zone-edge" x1="${X0}" x2="${X1}" y1="${y(70)}" y2="${y(70)}"/>
     <text class="zone-label" x="${X0 + 10}" y="${y(70) - 10}">ZONA MATE · 70° A 85°</text>
     ${grid}${hours}
-    <path class="area-brasa" d="${path(brasaAt)} L${X1} ${Y1} L${X0} ${Y1} Z"/>
-    <path class="line-other" d="${path(otherAt)}"/>
-    <path class="line-brasa" d="${path(brasaAt)}"/>
-    <text class="tag tag-brasa" x="${X1 + 10}" y="${y(brasaAt(12)) + 4}">Brasa</text>
-    <text class="tag tag-other" x="${X1 + 10}" y="${y(otherAt(12)) + 4}">Termo</text>
+    <path class="area-brasa" id="lab-area"/>
+    <path class="line-other" id="lab-line-other"/>
+    <path class="line-brasa" id="lab-line-brasa"/>
+    <text class="tag tag-brasa" id="lab-tag-brasa">Brasa</text>
+    <text class="tag tag-other" id="lab-tag-other">Termo</text>
     <line class="cursor" id="lab-cursor" y1="${Y0}" y2="${Y1}"/>
     <circle class="dot-other" id="lab-dot-other" r="7"/>
     <circle class="dot-brasa" id="lab-dot-brasa" r="8"/>`;
-  svg.setAttribute('viewBox', `0 0 ${X1 + 60} 340`);
+  labSvg.setAttribute('viewBox', `0 0 ${X1 + 60} 340`);
 
   const prueba = $('#prueba');
+  const g = (id) => document.getElementById(id);
   const els = {
-    clock: $('#lab-clock'), brasa: $('#lab-brasa'), other: $('#lab-other'),
-    brasaV: $('#lab-brasa-v'), otherV: $('#lab-other-v'),
-    cursor: $('#lab-cursor'), dotB: $('#lab-dot-brasa'), dotO: $('#lab-dot-other'),
+    clock: g('lab-clock'), brasa: g('lab-brasa'), other: g('lab-other'),
+    brasaV: g('lab-brasa-v'), otherV: g('lab-other-v'), now: g('moment-now'),
+    area: g('lab-area'), lineB: g('lab-line-brasa'), lineO: g('lab-line-other'),
+    tagB: g('lab-tag-brasa'), tagO: g('lab-tag-other'),
+    cursor: g('lab-cursor'), dotB: g('lab-dot-brasa'), dotO: g('lab-dot-other'),
   };
+  // las líneas se dibujan hasta la hora actual: el gráfico "pasa" junto con el reloj
   function setHour(h) {
     const tb = brasaAt(h), to = otherAt(h);
     els.clock.textContent = clock(h);
@@ -822,44 +850,52 @@ if (labInput) {
     const [lb, vb] = verdict(tb), [lo, vo] = verdict(to);
     els.brasaV.dataset.level = lb; els.brasaV.textContent = vb;
     els.otherV.dataset.level = lo; els.otherV.textContent = vo;
+    const lb_ = path(brasaAt, h);
+    els.lineB.setAttribute('d', lb_);
+    els.lineO.setAttribute('d', path(otherAt, h));
+    els.area.setAttribute('d', `${lb_} L${x(h)} ${Y1} L${X0} ${Y1} Z`);
+    for (const [el, t] of [[els.dotB, tb], [els.dotO, to]]) { el.setAttribute('cx', x(h)); el.setAttribute('cy', y(t)); }
     els.cursor.setAttribute('x1', x(h)); els.cursor.setAttribute('x2', x(h));
-    els.dotB.setAttribute('cx', x(h)); els.dotB.setAttribute('cy', y(tb));
-    els.dotO.setAttribute('cx', x(h)); els.dotO.setAttribute('cy', y(to));
-    labInput.style.setProperty('--pct', `${(h / 12) * 100}%`);
-    labInput.setAttribute('aria-valuetext', `${clock(h)}: Brasa ${Math.round(tb)} grados, termo común ${Math.round(to)} grados`);
+    // las etiquetas aparecen al final, cuando la diferencia ya es clara
+    const tagsOn = h >= 11.9;
+    els.tagB.setAttribute('x', X1 + 10); els.tagB.setAttribute('y', y(tb) + 4);
+    els.tagO.setAttribute('x', X1 + 10); els.tagO.setAttribute('y', y(to) + 4);
+    els.tagB.style.opacity = els.tagO.style.opacity = tagsOn ? 1 : 0;
     let on = 0;
     momentEls.forEach((li, i) => { if (Number(li.dataset.h) <= h + 0.01) on = i; });
     momentEls.forEach((li, i) => li.classList.toggle('is-on', i === on));
+    const text = momentEls[on].querySelector('.m-text').textContent;
+    if (els.now.textContent !== text) els.now.textContent = text;
     prueba.style.setProperty('--heat', (0.55 + 0.45 * clamp((tb - 70) / 15)).toFixed(3));
   }
 
-  // animación de la hora (para el arranque y los botones de los momentos)
   let tween = 0;
-  function animateTo(target, dur = 900) {
+  function play(dur = 5200) {
     cancelAnimationFrame(tween);
-    const from = Number(labInput.value);
-    if (reduce || dur === 0) { labInput.value = target; setHour(target); return; }
     const t0 = performance.now();
     const step = (now) => {
       const k = clamp((now - t0) / dur);
-      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-      const h = from + (target - from) * e;
-      labInput.value = h; setHour(h);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      setHour(12 * e);
       if (k < 1) tween = requestAnimationFrame(step);
     };
     tween = requestAnimationFrame(step);
   }
-  labInput.addEventListener('input', () => { cancelAnimationFrame(tween); setHour(Number(labInput.value)); });
-  momentEls.forEach((li) => li.querySelector('button')?.addEventListener('click', () => animateTo(Number(li.dataset.h))));
-  setHour(0);
 
-  // la primera vez que el simulador entra en pantalla, corre solo las 12 horas
-  const labIO = new IntersectionObserver((entries) => {
-    if (!entries[0].isIntersecting) return;
-    labIO.disconnect();
-    if (!reduce && Number(labInput.value) === 0) setTimeout(() => animateTo(12, 3600), 400);
-  }, { threshold: 0.45 });
-  labIO.observe($('.lab'));
+  if (reduce) {
+    setHour(12);              // sin movimiento: directo al resultado
+  } else {
+    setHour(0);
+    // corre cada vez que el gráfico entra en pantalla (después de haber salido del todo)
+    let played = false;
+    const labIO = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && e.intersectionRatio >= 0.4 && !played) { played = true; setTimeout(() => play(), 350); }
+        else if (!e.isIntersecting) { played = false; cancelAnimationFrame(tween); setHour(0); }
+      }
+    }, { threshold: [0, 0.4] });
+    labIO.observe($('.prueba-viz'));
+  }
 }
 
 /* ================================================================
@@ -975,6 +1011,12 @@ async function boot() {
   ch.addEventListener('pointerup', end);
   ch.addEventListener('pointercancel', end);
 
+  if (matchMedia('(hover: hover)').matches && !reduce) {
+    window.addEventListener('pointermove', (e) => {
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+    }, { passive: true });
+  }
   window.addEventListener('resize', resize, { passive: true });
   // el alto del canvas también cambia sin resize de ventana (vista previa que se achica en mobile)
   if ('ResizeObserver' in window) {
